@@ -8,6 +8,7 @@ Created on Thu Feb 23 09:37:50 2023
 import pandas as pd
 import Data_Explo_HELPER as halp
 import matplotlib.pyplot as plt
+import os
 
 
 
@@ -36,3 +37,8 @@ breathD = breathD.astype('float64', copy=False)
 breathD.dtypes.value_counts()
 
 breathD["Rf"].mean()
+
+
+    
+
+    
