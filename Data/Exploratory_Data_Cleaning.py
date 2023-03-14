@@ -19,6 +19,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg #For integrating
 # Simple Patient Manager Tool
 
 _VARS = {'window': False}
+sg.theme('DarkAmber')
 #Create different layout views
 layout1 = [[sg.Text("Patient Data Manager")],
           [sg.Text("PatientNumber", size=(25,1)),sg.InputText()],
