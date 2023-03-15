@@ -91,7 +91,7 @@ def patientManager(patientNumber,dfName,verbose=False):
                 #breathD has special conditions requiring custom loader function
                 if dfName == "breathD":
                     print(f"FILEPATH IS {filepath}")
-                    df = breathDLoader(filepath)
+                    df = breathDLoader(filepath,part)
                     #Rename column names to reflect part of trial data. 2 = part2, 3 = part 3 etc.
                     if part > 1:
                         df.rename(columns=lambda x: str(part)+x,inplace=True)
@@ -232,21 +232,31 @@ def NaN_Cleaner(df, verbose=False):
     return df
         
 def sub_plotter(df,col1,col2,n):
+    title1 = col1
+    title2 = col2
     breath_length = math.floor(len(df)/20)
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
+    #fig, (ax1, ax2, ax3) = plt.subplots(1,2) #, ax4
+    fig, ax = plt.subplots(2,2,constrained_layout=True)
     n_next = n+1
     
     if n <= 1:
         ax1.plot(df.loc[0:breath_length,col1],df.loc[0:breath_length,col2])
         ax2.plot(df.loc[breath_length:breath_length*2,col1],df.loc[breath_length:breath_length*2,col2])
         ax3.plot(df.loc[breath_length*2:breath_length*3,col1],df.loc[breath_length*2:breath_length*3,col2])
-        ax4.plot(df.loc[breath_length*3:breath_length*4,col1],df.loc[breath_length*3:breath_length*4,col2])
+        ax1.set_xlabel(col1);ax1.set_ylabel(col2);
+        ax2.set_xlabel(col1);ax1.set_ylabel(col2);
+        ax3.set_xlabel(col1);ax1.set_ylabel(col2);
+        #ax4.plot(df.loc[breath_length*3:breath_length*4,col1],df.loc[breath_length*3:breath_length*4,col2])
     else:
         print(n*breath_length)
-        ax1.plot(df.loc[n*breath_length:breath_length*n_next,col1],df.loc[n*breath_length:breath_length*n_next,col2])
-        ax2.plot(df.loc[breath_length*2*n:breath_length*2*n_next,col1],df.loc[breath_length*2*n:breath_length*2*n_next,col2])
-        ax3.plot(df.loc[breath_length*3*n:breath_length*3*n_next,col1],df.loc[breath_length*3*n:breath_length*3*n_next,col2])
-        ax4.plot(df.loc[breath_length*4*n:breath_length*4*n_next,col1],df.loc[breath_length*4*n:breath_length*4*n_next,col2])
+        ax[0,0].plot(df.loc[n*breath_length:breath_length*n_next,col1],df.loc[n*breath_length:breath_length*n_next,col2])
+        ax[0,1].plot(df.loc[breath_length*2*n:breath_length*2*n_next,col1],df.loc[breath_length*2*n:breath_length*2*n_next,col2])
+        ax[1,0].plot(df.loc[breath_length*3*n:breath_length*3*n_next,col1],df.loc[breath_length*3*n:breath_length*3*n_next,col2])
+        ax[1,1].plot(df.loc[breath_length*4*n:breath_length*4*n_next,col1],df.loc[breath_length*4*n:breath_length*4*n_next,col2])
+        ax[0,0].set_xlabel(col1);ax[0,0].set_ylabel(col2);
+        ax[0,1].set_xlabel(col1);ax[0,1].set_ylabel(col2);
+        ax[1,0].set_xlabel(col1);ax[1,0].set_ylabel(col2);
+        ax[1,1].set_xlabel(col1);ax[1,1].set_ylabel(col2);
     return fig
 
 def draw_figure(canvas,

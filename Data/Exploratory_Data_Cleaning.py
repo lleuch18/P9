@@ -23,7 +23,7 @@ sg.theme('DarkAmber')
 #Create different layout views
 layout1 = [[sg.Text("Patient Data Manager")],
           [sg.Text("PatientNumber", size=(25,1)),sg.InputText()],
-          [sg.Text("breathD, esoData, mod_FFFT or entire", size=(25,1)),sg.InputText()],
+          [sg.Text("breathD, esoData, FFFT or entire", size=(25,1)),sg.InputText()],
           [sg.Button('Load'),sg.Button('View Formula')]]#, sg.Button('Close')]]
 
 layout2 = [[sg.Text("This is where the magic happens!")],          
@@ -48,8 +48,8 @@ layout = [[sg.Column(layout1,visible=False, key='-COL1-'),
            sg.Column(layout4,visible=False, key='-COL4-')],
           [sg.Button('Close'),
            sg.Button('PDM'),
-           sg.Button('Plot Tool'),
-           sg.Button('TestPlot')]]
+           sg.Button('Plot Tool')]]
+           #sg.Button('TestPlot')]]
 
 # Create the window
 _VARS['window'] = sg.Window("Patient Data Manager", layout,resizable=True)
@@ -86,7 +86,7 @@ while True:
         layout = 3        
         _VARS['window'][f"-COL{layout}-"].update(visible=True)
     #print(layout)
-        break
+        
     
     #Loads input stored in values list (0 = patientNumber, 1=dfName)
     if event == "Load":
@@ -104,26 +104,26 @@ while True:
         print(f"Loading {values[1]} dataset")
         #break
     
-    if event == "Plot":
+    #if event == "Plot":
         
-        if values[4] == "breathD":
-            halp.sub_plotter(breathD, values[5], values[6], int(values[7]))
-        if values[4] == "esoData":
-            halp.sub_plotter(esoData, values[5], values[6], int(values[7]))
-        if values[4] == "mod_FFFT":
-            halp.sub_plotter(mod_FFFT, values[5], values[6], int(values[7]))
+     #   if values[4] == "breathD":
+      #      halp.sub_plotter(breathD, values[5], values[6], int(values[7]))
+       # if values[4] == "esoData":
+        #    halp.sub_plotter(esoData, values[5], values[6], int(values[7]))
+        #if values[4] == "mod_FFFT":
+         #   halp.sub_plotter(mod_FFFT, values[5], values[6], int(values[7]))
         
     if event == "Hide Formula":
         _VARS['window'][f"-COL{layout}-"].update(visible=False)
         layout = 1        
         _VARS['window'][f"-COL{layout}-"].update(visible=True) 
         
-    if event == "TestPlot":
+    if event == "Plot":
         _VARS['window'][f"-COL{layout}-"].update(visible=False)
         layout = 4        
         _VARS['window'][f"-COL{layout}-"].update(visible=True)
         fig = plt.figure()
-        fig = halp.sub_plotter(mod_FFFT, 'Time', 'flow', 4)
+        fig = halp.sub_plotter(esoData, 'Time', 'flow', 4)
         halp.draw_figure(_VARS['window']['figCanvas'].TKCanvas, fig)   
        
     
@@ -145,21 +145,21 @@ _VARS['window'].close()
     #CRS = deltaV/deltaP = Vt/(Pplat-PEEP) = Vt/{Transpulmonary Pressure}
     
 # First we add a new compliance column
-mod_FFFT['C'] = [None] * len(mod_FFFT)
+#mod_FFFT['C'] = [None] * len(mod_FFFT)
 
-for i in range(len(mod_FFFT)):
-    mod_FFFT.at[i, 'C'] = mod_FFFT.at[i, 'C'] ###FINISH LATER
+#for i in range(len(mod_FFFT)):
+ #   mod_FFFT.at[i, 'C'] = mod_FFFT.at[i, 'C'] ###FINISH LATER
 
 
 
 # %% Add Transpulmonary pressure 
-for i in range(len(esoData)):
-    esoData.at[i,'PL'] = esoData.at[i,'pao']-esoData.at[i,'peso']
+#for i in range(len(esoData)):
+ #   esoData.at[i,'PL'] = esoData.at[i,'pao']-esoData.at[i,'peso']
     
-PL_error = esoData.index[esoData['PL'] > 100].tolist()
+#PL_error = esoData.index[esoData['PL'] > 100].tolist()
 
 #%%
-breathD, esoData, FFFT = halp.patientManager(1, "entire")
+#breathD, esoData, FFFT = halp.patientManager(1, "entire")
 
 
-test = halp.patientManager(1,"breathD")
+#test = halp.patientManager(1,"breathD")
