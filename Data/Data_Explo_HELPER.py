@@ -97,7 +97,7 @@ def patientManager(patientNumber,dfName,verbose=False):
                         df.rename(columns=lambda x: str(part)+x,inplace=True)
                     df = NaN_Cleaner(df)#,verbose=True)
                     cols = df.columns
-                    df = movingAverage(df, cols)                    
+                    df = nan_movingAverage(df, cols)                    
                     df_list.append(df)
                 #esoData or FFT loaded directly
                 else:
@@ -105,7 +105,7 @@ def patientManager(patientNumber,dfName,verbose=False):
                     alt_df = pd.read_csv(filepath); alt_df = NaN_Cleaner(alt_df)#,verbose=True)
                     if part > 1:
                         alt_df.rename(columns=lambda x: str(part)+x,inplace=True)
-                    cols = alt_df.columns; alt_df = movingAverage(alt_df, cols);
+                    cols = alt_df.columns; alt_df = nan_movingAverage(alt_df, cols);
                     df_list.append(alt_df)
         df = concat_Parts(df_list, dfName)
         return df
@@ -169,7 +169,7 @@ def breathDLoader(filepath,part):
 
 
         
-def movingAverage(df, cols, verbose=False):
+def nan_movingAverage(df, cols, verbose=False):
     """
     Moving Average over to smooth out NAN values
 
@@ -210,6 +210,86 @@ def movingAverage(df, cols, verbose=False):
             
     return df
 
+def unsquare_moving_average(df,col,num_points):
+    """
+    #####NEEDS WORK######
+    Loops through the specified column. If the sum of index-values at the desired range == 0, it is assumed to be a square wave. Thus, a moving average filter will 
+    give it a natural smoothing.
+
+    Parameters
+    ----------
+    df : dataframe
+    col : column of dataframe to filter.
+    num_points : the range of indexes pre- and post of current indexes to be filtered through. 
+
+    Returns
+    -------
+    df : TYPE
+        DESCRIPTION.
+
+    """
+    for i in range(len(df)):
+
+        if df.loc[(i-num_points):(i+num_points),col].sum() % df.loc[1+(i-num_points):1+(i+num_points),col].sum() == 0:
+            #num_points*2 will be filtered - in order to increase chance of smoothing out square wave.
+            df.at[i,col] = df.loc[i-num_points*2:i+num_points*2,col].mean()    
+    
+    return df
+
+def dynamic_moving_median(df, threshold, count_increment):
+    """
+    
+
+    Parameters
+    ----------
+    df : Dataframe
+    threshold : The minimum-threshold to which the median filters filters values.
+    count_increment : how many values pre- and post the current values are considered for the median calculation.
+
+    Returns
+    -------
+    df : Median_Filtered dataframe
+
+    """
+    from ipywidgets import IntProgress
+    from IPython.display import display
+    
+    part_count = 0
+    p = IntProgress(min=0, max=part_count) # instantiate the bar
+    display(p)
+    
+    max_count = 360000
+    f = IntProgress(min=0, max=max_count) # instantiate the bar
+    display(f) # display the bar
+    
+    
+    
+    for part in range(1,9):
+        p.value +=1
+        for i in range(len(df)):
+            if i % 10000 == 0:
+                #print(f"total iterations: {i}")
+                f.value += 10000
+            if part == 1:
+                count = 0
+                #print(f"Count was reset")
+                while df.at[i,'peso'] < threshold:                
+                    #print(f"Count is currently: {count}")
+                    if df.loc[(i-count):(i+count),'peso'].median() > threshold:
+                        df.at[i,'peso'] = df.loc[(i-count):(i+count),'peso'].median()
+                    count += count_increment
+    
+            else:        
+                prefix = str(part)        
+                column = prefix+'peso' 
+                count = 0
+                while df.at[i,column] < threshold:
+                    
+                    if df.loc[(i-count):(i+count),column].median() > threshold:
+                        df.at[i,column] = df.loc[(i-count):(i+count),column].median()
+                    count += count_increment
+    return df
+                
 
 def NaN_Cleaner(df, verbose=False):
     if verbose:
@@ -340,7 +420,7 @@ def return_entire(part,part_dir,patientNumber,dfName): #,hotfix_dict #parent_dir
     for temp_df in dfList:
         temp_df = NaN_Cleaner(temp_df)#,verbose=True)            
         cols = temp_df.columns
-        temp_df = movingAverage(temp_df, cols)
+        temp_df = nan_movingAverage(temp_df, cols)
     return dfList[0], dfList[1], dfList[2]
 
 
@@ -525,7 +605,45 @@ def concat_Parts(df_list,dfName):
         return df
         
             
-        
+def breathD_Transposer():
+    """
+        breathD is currently saved in a 1-row csv file. The breathDLoader() function then correctly loads this data into a dataframe.
+        The purpose of this function, is to save the data in a correctly formatted .csv file.
+    
+        Returns
+        -------
+        None.
+    
+        """
+    for patientNumber in range(1,22):    
+        patient = "patient" + str(patientNumber)
+        parent_dir = os.path.join("patients",patient)
+        for part in range(1,13):
+            partStr = "part" + str(part)
+            part_dir = os.path.join(parent_dir,partStr)
+            
+            suffix = str(patientNumber) + str(part) + ".csv"
+            
+            directory = os.listdir(part_dir)
+            if len(directory) != 0:
+                #Adds .csv file extension
+                dfName_mod = "breathD" + suffix
+                #creates the relative filepath from C:\Users\Lasse\OneDrive\Skrivebord\ST9\P9\Data
+                filepath = os.path.join(part_dir,dfName_mod)            
+            
+                breathD = breathDLoader(filepath, part)
+                
+                
+                
+                csv_name = "breathD" + str(patientNumber) + str(part) + "New" +".csv"
+                tempFilePath = os.path.join(part_dir,csv_name)
+                
+                
+                breathD = NaN_Cleaner(breathD)
+                cols = breathD.columns
+                breathD = nan_movingAverage(breathD, cols)
+                
+                breathD.to_csv(tempFilePath)
 
 
 
