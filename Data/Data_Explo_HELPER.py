@@ -103,8 +103,8 @@ def patientManager(patientNumber,dfName,verbose=False):
                 else:
                     print(f"FILEPATH IS {filepath}")            
                     alt_df = pd.read_csv(filepath); alt_df = NaN_Cleaner(alt_df)#,verbose=True)
-                    if part > 1:
-                        alt_df.rename(columns=lambda x: str(part)+x,inplace=True)
+                    #if part > 1:
+                    alt_df.rename(columns=lambda x: str(part)+x,inplace=True)
                     cols = alt_df.columns; alt_df = nan_movingAverage(alt_df, cols);
                     df_list.append(alt_df)
         df = concat_Parts(df_list, dfName)
@@ -236,7 +236,7 @@ def unsquare_moving_average(df,col,num_points):
     
     return df
 
-def dynamic_moving_median(df, threshold, count_increment):
+def dynamic_moving_median(df, column, threshold, count_increment):
     """
     
 
@@ -254,9 +254,9 @@ def dynamic_moving_median(df, threshold, count_increment):
     from ipywidgets import IntProgress
     from IPython.display import display
     
-    part_count = 0
-    p = IntProgress(min=0, max=part_count) # instantiate the bar
-    display(p)
+    #part_count = 0
+    #p = IntProgress(min=0, max=part_count) # instantiate the bar
+    #display(p)
     
     max_count = 360000
     f = IntProgress(min=0, max=max_count) # instantiate the bar
@@ -264,30 +264,40 @@ def dynamic_moving_median(df, threshold, count_increment):
     
     
     
-    for part in range(1,9):
-        p.value +=1
-        for i in range(len(df)):
-            if i % 10000 == 0:
-                #print(f"total iterations: {i}")
-                f.value += 10000
-            if part == 1:
-                count = 0
-                #print(f"Count was reset")
-                while df.at[i,'peso'] < threshold:                
-                    #print(f"Count is currently: {count}")
-                    if df.loc[(i-count):(i+count),'peso'].median() > threshold:
-                        df.at[i,'peso'] = df.loc[(i-count):(i+count),'peso'].median()
-                    count += count_increment
-    
-            else:        
-                prefix = str(part)        
-                column = prefix+'peso' 
-                count = 0
-                while df.at[i,column] < threshold:
-                    
-                    if df.loc[(i-count):(i+count),column].median() > threshold:
-                        df.at[i,column] = df.loc[(i-count):(i+count),column].median()
-                    count += count_increment
+    #for part in range(1,9):
+        #p.value +=1
+    for i in range(len(df)):
+        if i % 10000 == 0:
+            print(f"total iterations of moving_median: {i}")
+            f.value += 10000
+        #if part == 1:
+            #count = 0
+            #print(f"Count was reset")
+            #while df.at[i,column] < threshold:                
+                #print(f"Count is currently: {count}")
+               # if df.loc[(i-count):(i+count),column].median() > threshold:
+                #    df.at[i,column] = df.loc[(i-count):(i+count),column].median()
+               # count += count_increment
+
+        #else:        
+        #prefix = str(part)        
+        #column = prefix+'peso' 
+        count = 0
+        while df.at[i,column] < threshold:
+            print(f"moving_median at index {i} reached count: {count}")
+            
+            if df.loc[(i-count):(i+count),column].median() > threshold:
+                
+                #Get index values as a series              
+                t_series =  df.loc[(i-count):(i+count),column]
+                #Convert the series to df
+                t_df = t_series.to_frame()
+                #Find all values within t_df which are above threshold, compute median                            
+                df.at[i,column] = t_df.loc[t_df[column]].median()
+            count += count_increment
+            
+
+                
     return df
                 
 
@@ -396,24 +406,24 @@ def return_entire(part,part_dir,patientNumber,dfName): #,hotfix_dict #parent_dir
     #breathD = breathDLoader(41, hotfix_dict[patientNumber], filepath_breathD, "breathD")    
     breathD = breathDLoader(filepath_breathD,part)
     #Rename column names, so that (starting with 2) part 2 has the prefix 2, part 3 has prefix 3 etc.
-    if part > 1:
-        breathD.rename(columns=lambda x: str(part)+x,inplace=True)     
+    #if part > 1:
+    breathD.rename(columns=lambda x: str(part)+x,inplace=True)     
     
     #####For esoData#####
     fn_esoData = "esoData" + suffix
     filepath_esoData = os.path.join(part_dir,fn_esoData)
     esoData = pd.read_csv(filepath_esoData)
     
-    if part > 1:
-        esoData.rename(columns=lambda x: str(part)+x,inplace=True)
+    #if part > 1:
+    esoData.rename(columns=lambda x: str(part)+x,inplace=True)
     
     
     #####For FFFT#####
     fn_FFFT = "FFFT" + suffix
     filepath_FFFT = os.path.join(part_dir,fn_FFFT)       
     FFFT = pd.read_csv(filepath_FFFT)
-    if part > 1:
-        FFFT.rename(columns=lambda x: str(part)+x,inplace=True)
+    #if part > 1:
+    FFFT.rename(columns=lambda x: str(part)+x,inplace=True)
     
     dfList.append(breathD);dfList.append(esoData);dfList.append(FFFT);
     
@@ -463,7 +473,7 @@ def concat_Parts(df_list,dfName):
         #Checks which length df_list has. This allows to dynamically load patient data which has varying parts, fx. 2 or 10 parts. Switch statement is
         #Necessary, since pd.concat() needs all df's to be concatinated at once (e.g. cannot use a for-loop to dynamically concatinate them)
         nrParts = len(temp_breathD)
-        print(f"Length of df_list: {nrParts}")
+        #print(f"Length of df_list: {nrParts}")
         match nrParts:            
             case 1:                    
                 breathD = pd.concat(temp_breathD[0])
@@ -603,7 +613,8 @@ def concat_Parts(df_list,dfName):
                                     temp_df[7],temp_df[8],temp_df[9]], axis=1)                
         
         return df
-        
+
+  
             
 def breathD_Transposer():
     """
@@ -644,7 +655,106 @@ def breathD_Transposer():
                 breathD = nan_movingAverage(breathD, cols)
                 
                 breathD.to_csv(tempFilePath)
+                
 
+class Ventilator:
+    
+    
+      
+    
+    def __init__(self):
+        print("NOTE: For patient 5, 16 and 21, missing values have been imputated ")
+        print("The imputated values are are:")
+        print("Patient 5: part 3 \n" + "Patient 16: part 4 \n" + "Patient 21: part 2" )
+        
+        
+        self.PS = {'1' : [5,10,15,13,11,9,9],
+              '2' : [6,4,18,16,14,12,12],
+              '3' : [21,19,15,13,7,7,9,9,7,14],
+              '4' : [14,12,10,8,6,12,14],
+              '5' : [5,5,5], ###NOTE 3rd list value (2nd index) is actually NaN - make a note of this when calling the getter
+              '6' : [12,4],
+              '7' : [9,9,15,13,9,5],
+              '8' : [10,10,9,10,8,10,10],
+              '9' : [4,3,3,5,3,5,3],
+              '10' : [3,4,3,3,3,9,7,5],
+              '11' : [11,9,8,10,12,12,10,11,12],
+              '12' : [4,3,12,5,3,9,4,3,6],
+              '13' : [10,10],
+              '14' : [10,10],
+              '15' : [10,10],
+              '16' : [6,4,3,4,4,12,10,8,6], ###NOTE 4rd list value (3rd index) is actually NaN - make a note of this when calling the getter
+              '17' : [7,9,10,5,7,8],
+              '18' : [4,3,3,9,7,5,3],
+              '19' : [6,12,10,8,4],
+              '20' : [6,3,4,3,12,10,8,6],
+              '21' : [7,6,5,3,12,10,8,6] ###NOTE 2nd list value is actually NaN - make a note of this when calling the getter          
+              }
+        
+        self.PEEP = {'1' : [6,6,6,6,6,6,5],
+                '2' : [10,10,10,10,10,10,8],
+                '3' : [8,8,8,8,8,8,8,8,8,8],
+                '4' : [15,15,15,15,15,10,5],
+                '5' : [4,12,8], ###NOTE 3rd list value is actually NaN - make a note of this when calling the getter
+                '6' : [8,8],
+                '7' : [10,10,10,10,10,10],
+                '8' : [4,4,8,12,12,12,4],
+                '9' : [7,7,7,10,10,4,4],
+                '10' : [12,12,12,12,12,12,12,12],
+                '11' : [9,9,9,6,6,3,3,3,9],
+                '12' : [6,6,12,12,12,18,18,18,6],
+                '13' : [3,12],
+                '14' : [9,3],
+                '15' : [5,5],
+                '16' : [5,5,5,5,5,5,5,5,5], ###NOTE 3rd list value is actually NaN - make a note of this when calling the getter
+                '17' : [8,8,8,8,8,8],
+                '18' : [5,5,5,5,5,5,5],
+                '19' : [4,4,4,4,4],
+                '20' : [5,5,5,5,5,5,5,5],
+                '21' : [10,10,10,10,10,10,10,10,10] ###NOTE 2nd list value is actually NaN - make a note of this when calling the getter
+                }
+    
+    
+    def get_Settings(self,patientNr):
+        return self.PS.get(str(patientNr)),self.PEEP.get(str(patientNr))
+    
+def suffix_Factory(part, b_peso = False, b_pao = False, b_Vt = False):
+    suffix = str(part)
+    if b_peso:
+        peso = suffix + 'peso'
+    if b_pao:
+        pao = suffix + 'pao'
+    if b_Vt:
+        Vt = suffix + 'Vt'
+        
+    if b_peso and b_pao and b_Vt:
+        return peso, pao, Vt
+    elif b_peso and b_pao:
+        return peso, pao
+    elif b_peso and b_Vt:
+        return peso, Vt
+    elif b_peso:
+        return peso
+    elif b_pao and b_Vt:
+        return pao, Vt
+    elif b_pao:
+        return pao
+    elif b_Vt:
+        return Vt
+    
+def verbose_fnc(v1_message=None, v2_message=None,v3_message=None):
+    if v1_message is not None:
+        print(v1_message)
+        
+    if v2_message is not None:
+        print(v2_message)
+        
+    if v3_message is not None:
+        print(v3_message)
+    
+
+    
+    
 
 
       
