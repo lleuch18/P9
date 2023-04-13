@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-04-13T05:52:01.636Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="QWXPjdydZwhWZAYXTM3l" version="21.1.5" type="github">
+<mxfile host="app.diagrams.net" modified="2023-04-13T05:52:38.871Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="dVmWAXH20ZXh23pzofBv" version="21.1.5" type="github">
   <diagram name="Page-1" id="cHOhQbaThhF00kyVwG35">
     <mxGraphModel dx="1434" dy="756" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -44,10 +44,14 @@
           <mxGeometry x="180" y="679" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1k7JzlAfuBkMmoo9yo2E-15" value="False" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#E07A5F;fontColor=default;" edge="1" parent="1" source="1k7JzlAfuBkMmoo9yo2E-11" target="1k7JzlAfuBkMmoo9yo2E-13">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry x="-0.1" y="21" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="1k7JzlAfuBkMmoo9yo2E-16" value="True" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#E07A5F;fontColor=default;" edge="1" parent="1" source="1k7JzlAfuBkMmoo9yo2E-11" target="1k7JzlAfuBkMmoo9yo2E-12">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry x="0.1111" y="10" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="1k7JzlAfuBkMmoo9yo2E-11" value="if amount &lt;br&gt;of values &amp;gt; threshold &lt;br&gt;in pd.DataFrame is &amp;gt;= median_length&amp;nbsp;" style="rhombus;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#F2CC8F;strokeColor=#E07A5F;fontColor=#393C56;" vertex="1" parent="1">
           <mxGeometry x="335.5" y="659" width="165" height="100" as="geometry" />
