@@ -236,7 +236,7 @@ def unsquare_moving_average(df,col,num_points):
     
     return df
 
-def dynamic_moving_median(df, column, threshold, count_increment):
+def dynamic_moving_median(df, column, threshold, count_increment,median_length):
     """
     
 
@@ -244,59 +244,43 @@ def dynamic_moving_median(df, column, threshold, count_increment):
     ----------
     df : Dataframe
     threshold : The minimum-threshold to which the median filters filters values.
+    
+    column : The column whose data will be filtered
+    
+    threshold : the threshold above which the erroneous measurement should be
+    
     count_increment : how many values pre- and post the current values are considered for the median calculation.
+    
+    median_length : the minimum length of the intermediary dataframe used when calculating the median (if only 1 data point meets criteria, median is less reflective of true value)
+    
 
     Returns
     -------
     df : Median_Filtered dataframe
 
     """
-    from ipywidgets import IntProgress
-    from IPython.display import display
-    
-    #part_count = 0
-    #p = IntProgress(min=0, max=part_count) # instantiate the bar
-    #display(p)
-    
-    max_count = 360000
-    f = IntProgress(min=0, max=max_count) # instantiate the bar
-    display(f) # display the bar
-    
-    
-    
-    #for part in range(1,9):
-        #p.value +=1
+   
     for i in range(len(df)):
         if i % 10000 == 0:
             print(f"total iterations of moving_median: {i}")
-            f.value += 10000
-        #if part == 1:
-            #count = 0
-            #print(f"Count was reset")
-            #while df.at[i,column] < threshold:                
-                #print(f"Count is currently: {count}")
-               # if df.loc[(i-count):(i+count),column].median() > threshold:
-                #    df.at[i,column] = df.loc[(i-count):(i+count),column].median()
-               # count += count_increment
-
-        #else:        
-        #prefix = str(part)        
-        #column = prefix+'peso' 
+            #f.value += 10000
+      
         count = 0
         while df.at[i,column] < threshold:
-            print(f"moving_median at index {i} reached count: {count}")
+            #print(f"moving_median at index {i} reached count: {count}")         
+            #Get index values as a series
+              
+            t_series =  df.loc[(i-count):(i+count),column]            
+            #Convert the series to df
+            t_df = t_series.to_frame()
             
-            if df.loc[(i-count):(i+count),column].median() > threshold:
-                
-                #Get index values as a series              
-                t_series =  df.loc[(i-count):(i+count),column]
-                #Convert the series to df
-                t_df = t_series.to_frame()
-                #Find all values within t_df which are above threshold, compute median                            
-                df.at[i,column] = t_df.loc[t_df[column]].median()
+            if len(t_df.loc[t_df[column]>threshold]) >= median_length:
+                #print(f"Reached if-statement at index: {i}")
+            #Find all values within t_df which are above threshold, compute median                            
+                df.at[i,column] = t_df.loc[t_df[column]>threshold].median()
+                #print(f"median = {t_df.loc[t_df[column]>threshold].median()}")
             count += count_increment
-            
-
+            #print(f"count = {count}")
                 
     return df
                 
