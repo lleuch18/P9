@@ -12,6 +12,7 @@ import PySimpleGUI as sg
 import math
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from typing import List
 
 
 
@@ -229,14 +230,23 @@ def unsquare_moving_average(df,col,num_points):
 
     """
     for i in range(len(df)):
-
+        count = num_points*10
         if df.loc[(i-num_points):(i+num_points),col].sum() % df.loc[1+(i-num_points):1+(i+num_points),col].sum() == 0:
-            #num_points*2 will be filtered - in order to increase chance of smoothing out square wave.
-            df.at[i,col] = df.loc[i-num_points*2:i+num_points*2,col].mean()    
+            if i % 100 == 0:
+                print(f"Moving average operation performed at index {i}")
+            if df.loc[(i-count*2):(i-count),col].mean() > df.loc[1+(i-num_points):1+(i+num_points),col].mean():
+                df.at[i,col] = df.loc[i-count*2:i-count,col].median()
+            
+            elif df.loc[(i+count*2):(i+count),col].mean() > df.loc[1+(i-num_points):1+(i+num_points),col].mean():
+                #count += num_points                
+                #num_points*2 will be filtered - in order to increase chance of smoothing out square wave.
+                df.at[i,col] = df.loc[i+count*2:i+count,col].median()
+               
+            
     
     return df
 
-def dynamic_moving_median(df, column, threshold, count_increment,median_length):
+def dynamic_moving_median(df, column, threshold, count_increment,median_length,verbose=False):
     """
     
 
@@ -261,26 +271,28 @@ def dynamic_moving_median(df, column, threshold, count_increment,median_length):
     """
    
     for i in range(len(df)):
-        if i % 10000 == 0:
-            print(f"total iterations of moving_median: {i}")
-            #f.value += 10000
+        if verbose:
+            if i % 10000 == 0:
+                print(f"total iterations of moving_median: {i}")
+
       
         count = 0
-        while df.at[i,column] < threshold:
-            #print(f"moving_median at index {i} reached count: {count}")         
-            #Get index values as a series
-              
-            t_series =  df.loc[(i-count):(i+count),column]            
-            #Convert the series to df
-            t_df = t_series.to_frame()
-            
-            if len(t_df.loc[t_df[column]>threshold]) >= median_length:
-                #print(f"Reached if-statement at index: {i}")
-            #Find all values within t_df which are above threshold, compute median                            
-                df.at[i,column] = t_df.loc[t_df[column]>threshold].median()
-                #print(f"median = {t_df.loc[t_df[column]>threshold].median()}")
-            count += count_increment
-            #print(f"count = {count}")
+        if df.at[i,column] < threshold:
+            while df.at[i,column] < threshold:
+                #print(f"moving_median at index {i} reached count: {count}")         
+                #Get index values as a series
+                  
+                t_series =  df.loc[(i-count):(i+count),column]            
+                #Convert the series to df
+                t_df = t_series.to_frame()
+                
+                if len(t_df.loc[t_df[column]>threshold]) >= median_length:
+                    #print(f"Reached if-statement at index: {i}")
+                #Find all values within t_df which are above threshold, compute median                            
+                    df.at[i,column] = t_df.loc[t_df[column]>threshold].median()
+                    #print(f"median = {t_df.loc[t_df[column]>threshold].median()}")
+                count += count_increment
+                #print(f"count = {count}")
                 
     return df
                 
@@ -702,29 +714,16 @@ class Ventilator:
     def get_Settings(self,patientNr):
         return self.PS.get(str(patientNr)),self.PEEP.get(str(patientNr))
     
-def suffix_Factory(part, b_peso = False, b_pao = False, b_Vt = False):
-    suffix = str(part)
-    if b_peso:
-        peso = suffix + 'peso'
-    if b_pao:
-        pao = suffix + 'pao'
-    if b_Vt:
-        Vt = suffix + 'Vt'
-        
-    if b_peso and b_pao and b_Vt:
-        return peso, pao, Vt
-    elif b_peso and b_pao:
-        return peso, pao
-    elif b_peso and b_Vt:
-        return peso, Vt
-    elif b_peso:
-        return peso
-    elif b_pao and b_Vt:
-        return pao, Vt
-    elif b_pao:
-        return pao
-    elif b_Vt:
-        return Vt
+
+def prefix_Factory(part: int, *cols: str):
+    prefix = str(part)
+    #Using sequence unpacking to return individual variables
+    #Using 
+    return tuple(prefix + col for col in cols)
+
+
+
+
     
 def verbose_fnc(v1_message=None, v2_message=None,v3_message=None):
     if v1_message is not None:
@@ -738,7 +737,7 @@ def verbose_fnc(v1_message=None, v2_message=None,v3_message=None):
     
 
     
-    
+
 
 
       

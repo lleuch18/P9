@@ -273,3 +273,244 @@ match nrParts:
                          temp_FFFT[df_list+3],temp_FFFT[df_list+4],temp_FFFT[df_list+5],temp_FFFT[df_list+6],
                          temp_FFFT[df_list+7], temp_FFFT[df_list+8],temp_FFFT[df_list+9])
         return breathD, esoData, FFFT
+
+
+
+
+######
+#PLOTYXPRESS SUBPLOTTER
+######
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+
+fig = make_subplots(rows=1, cols=2,
+                    subplot_titles=("Plot 1", "Plot 2", "Plot 3", "Plot 4"))
+
+fig.add_trace(
+    go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),
+    row=1, col=1
+)
+
+fig.add_trace(
+    go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),
+    row=1, col=2
+)
+
+fig.update_layout(height=600, width=800, title_text="Side By Side Subplots")
+fig.show()
+
+
+
+
+####### CHECK DATA QUALITY THROUGH AMT OF CORRUPTED DATA #######
+###NOTE: DIFFERING PART LENGTHS IMPUTATED BY NAN, WHICH MISREPRESENTS ACTUAL LENGTH###
+save_csv = False
+if save_csv:
+
+    pt_dic = {}
+
+    for patient in range(1,23):
+        breathD, esoData, FFFT = halp.patientManager(patient,"entire")
+        part_dic = {}
+
+
+        quality_check = True
+        parts = int(len(esoData.columns)/12)
+        if quality_check:
+            for part in range(1,parts+1):
+                prefix = str(part)
+                peso = prefix + 'peso'
+                pao = prefix + 'pao'
+
+                eso_count = 0
+                pao_count = 0
+
+                for i in range(len(esoData)):
+                    if esoData.at[i,peso] < 130:
+                        eso_count +=1
+                    if esoData.at[i,pao] < 130:
+                        pao_count +=1
+                #print(color.BOLD + f"***for part{part}***" + color.END)
+                #print(color.RED + f"Percentage peso corrupted data = {eso_count/len(esoData)*100}%" + color.END)
+                #print(color.RED + f"Percentage pao corrupted data = {pao_count/len(esoData)*100}%" + color.END)
+                part_dic[part] = {'peso' : round(eso_count/len(esoData)*100,2), 'pao' : round(pao_count/len(esoData)*100,2)}
+            pt_dic[patient] = part_dic
+            
+        
+    import csv
+
+        
+    field_names = ['peso', 'pao']
+    for patient in range(1,23):
+        suffix=str(patient)
+        file_name = 'patient' + suffix + '.csv'
+
+        corruption_data = []
+        for part in range(1,len(pt_dic[patient])+1):
+
+            corruption_data.append(pt_dic[patient][part])
+
+        with open(file_name, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=field_names)
+            writer.writeheader()
+            writer.writerows(corruption_data)
+
+
+
+if special_test:
+    if C % 100 == 0:
+        print(color.BOLD + f"Value of hk_cost_form at C {C} is j = {hk_cost_form[C]}" + color.END)
+        
+        
+        if special_test:
+            print(f"values in hk_cost_form for breath {breath} are {hk_cost_form}")
+
+
+
+def grid_search(esoData, esoData_bins,breathD,pat_Nr,verbose=False):
+    #Grid search used for this step
+    b_amt = len(esoData_bins)
+    parts = int(len(esoData.columns)/12)
+    #Retrieve vent settings
+    PS, PEEP = halp.Ventilator().get_Settings(str(pat_Nr))
+    #Define values for C
+    #C_range = np.arange(1,120,0.1)
+    C_range = np.arange(100,400,0.5)
+    
+    special_test = False
+
+    #Housekeeping variables
+    hk_parts = {}
+    hk_breath = {}
+    hk_cost_form = {}
+    
+    j = 0
+
+    if verbose:
+        halp.verbose_fnc(color.BOLD + f"****CURRENT PATIENT IS: {pat_Nr}****" + color.END)
+    #For every part
+    for part in range(1,parts+1):
+        
+        tot_loss = 0
+        if verbose:
+            halp.verbose_fnc(color.UNDERLINE + f"**CURRENT PART IS: {part}**" + color.END)
+
+        tot_loss = 0
+        peso, pao, Vt = halp.suffix_Factory(part,True,True,True)
+        
+        
+        #Loop through every breath
+        for breath in range(b_amt):
+            if np.isnan(breath) == False:
+                j_best = 100000
+                C_best = 0.0000
+                #Loop through all C values
+                for C in C_range:
+                    j = compliance_cost(esoData_bins.at[breath,peso], esoData_bins.at[breath,pao], breathD.at[breath,Vt],PEEP[part-1],C)
+                    if verbose:
+                        if C % 50 == 0:
+                            print(color.RED + f"value of j at C{C} is j = {j}")
+    
+                    #Housekeep best current loss, best C
+                    if j < j_best:
+                        j_best = j
+                        C_best = C
+                #Housekeep loss for current breath
+                    if np.isnan(j) == False:
+                        hk_cost_form[C] = j
+                    
+                    
+                
+                
+                if verbose:
+                    if breath % 100 == 0:
+                        halp.verbose_fnc(color.DARKCYAN + f"j_best for breath {breath} is: {j_best}" + color.END,color.DARKCYAN + f"C_best is: {C_best}" + color.END)
+                
+                
+                hk_breath[breath] = {"j" : j_best, "C" : C_best, "cost_form" : hk_cost_form}
+               # for i in range(100,150,1):
+                    #if np.isnan(hk_breath[breath]['cost_form'][i]) == False:
+                        #print(f"value of hk_cost_form at C = {i} is {hk_breath[breath]['cost_form'][i]}")
+                #for i in hk_cost_form:
+                    #if np.isnan(hk_cost_form[i]) == False:
+                        #print(color.BOLD + f"Before clear index {i} was not a nan" + color.END)
+                #reset hk_cost_form
+                #hk_cost_form.clear()
+                tot_loss += j_best
+        if verbose:    
+            halp.verbose_fnc(color.RED + f"total loss for part {part} is: {tot_loss}" + color.END)
+        #Housekeep total loss for entire part
+        hk_parts[part] = {"tot_loss" : tot_loss, "hk_breath" : hk_breath}
+        print(color.BOLD + f"Length of hk_parts at part {part} is {len(hk_parts)}" + color.END)
+        
+    return hk_parts
+
+
+
+### Quick Testing
+patient = 11
+
+#load data
+breathD,esoData,FFFT = halp.patientManager(patient,'entire')
+
+#Perform bucketing
+esoData_bins = comp_halp.bin_divider(esoData,breathD)
+
+
+hk_parts = comp_halp.grid_search(esoData, esoData_bins,breathD,patient,verbose=True)
+
+
+
+
+esoData['1peso'].std()
+esoData_bins['3peso'].std()
+
+
+
+np.isnan(esoData_bins.at[134,'3peso'])
+
+var = esoData_bins['1ModifiedPeso'].var()
+peso = esoData_bins.at[13,'1ModifiedPeso']
+Vt = breathD.at[13,'1Vt']
+pao = esoData.at[13,'1ModifiedPao']
+PEEP = 5
+C = 100
+
+
+#Manual calculation
+#j = ((Peso - ((Vt/C) + PEEP - pao))**2)/Peso.var()
+(peso - ((Vt*100)/C)+PEEP-pao)**2/var
+(esoData_bins.at[13,'1ModifiedPeso']-((breathD.at[13,'1Vt']*100)/100)+5-esoData.at[13,'1ModifiedPao'])**2/esoData_bins['1ModifiedPeso'].var()
+
+
+j = comp_halp.compliance_cost(peso, Vt, pao, PEEP, C,esoData_bins['1ModifiedPeso'].std())
+
+# %%
+#Flow cost function for estimating Raw
+def flow_cost(flow,Palv,Raw,t,exp_t_const,flow_var):
+    j = ((flow -(Palv/Raw)*math.log(-t/exp_t_const))**2)/flow_var
+    
+    return j
+
+# Grid search
+Raw_range = np.arange(0.1,5,0.01)
+
+j_best = 0
+Raw_best = 100000
+
+for Raw in Raw_range:
+    for breath in range(b_amt):
+        
+        j = flow_cost(flow, Palv, Raw, t, exp_t_const, flow_var)
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    PSV = ((Peak Pressure – Plateau Pressure) / Set Flow) x Peak Flow
+    
