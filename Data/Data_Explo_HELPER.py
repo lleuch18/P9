@@ -659,9 +659,9 @@ class Ventilator:
       
     
     def __init__(self):
-        print("NOTE: For patient 5, 16 and 21, missing values have been imputated ")
-        print("The imputated values are are:")
-        print("Patient 5: part 3 \n" + "Patient 16: part 4 \n" + "Patient 21: part 2" )
+        #print("NOTE: For patient 5, 16 and 21, missing values have been imputated ")
+        #print("The imputated values are are:")
+        #print("Patient 5: part 3 \n" + "Patient 16: part 4 \n" + "Patient 21: part 2" )
         
         
         self.PS = {'1' : [5,10,15,13,11,9,9],

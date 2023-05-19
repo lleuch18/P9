@@ -6,6 +6,63 @@ Created on Mon Feb 20 17:02:20 2023
 """
 # %% Original Attempt at loading data (since switched to saving matlab array struct to .csv and loading it that way)
 
+
+patient = 11
+breathD,esoData,FFFT = halp.patientManager(patient,'entire')
+
+
+#Manual detection
+part = 3
+Time,ModifiedPeso,ModifiedPao,pao_peak,peso_peak = halp.prefix_Factory(part, 'Time','ModifiedPeso','ModifiedPao','pao_peak','peso_peak')
+
+esoData = peak_halp.peak_adder(patient=11, esoData=esoData, pesoHeight=-3, pesoDistance=150, paoHeight=11.5, paoDistance=150)
+
+
+trace1 = go.Scatter(
+    x=esoData[Time],
+    y=esoData[ModifiedPao],
+    mode='markers+text',
+    textposition='top center',
+    text=esoData[pao_peak],
+    name=ModifiedPao,
+    marker=dict(
+        color='green',
+        size=1
+               )
+)
+
+trace2 = go.Scatter(
+    x=esoData[Time],
+    y=esoData[ModifiedPeso],
+    mode='markers+text',
+    textposition='top center',
+    text=esoData[peso_peak],
+    name=ModifiedPeso,
+    marker=dict(
+        color='magenta',
+        size=1
+               )
+)
+
+
+
+
+fig = make_subplots(rows=2,cols=1,subplot_titles=('ModifiedPao','ModifiedPeso'))
+fig.add_trace(trace1,row=1,col=1)
+fig.add_trace(trace2,row=2,col=1)
+fig['layout'].update(height = 600, width = 800, title = "Peaks Pao vs. Peso",xaxis=dict(
+      tickangle=-90
+    ),
+    yaxis_title="P (cmH2O)",
+    xaxis_title="Time (S" + comp_halp.get_super('-2')+')')
+
+fig['layout']['xaxis']['title']="Time (S" + comp_halp.get_super("-2")+")"
+fig['layout']['xaxis2']['title']="Time (S" + comp_halp.get_super("-2")+")"
+fig['layout']['yaxis']['title']="P (cmH2O)"
+fig['layout']['yaxis2']['title']="P (cmH2O)"
+
+plot(fig)
+
 import scipy.io
 import numpy as np
 import pandas as pd
@@ -514,3 +571,314 @@ for Raw in Raw_range:
     
     PSV = ((Peak Pressure – Plateau Pressure) / Set Flow) x Peak Flow
     
+# %% Old Bin Divider (max of pressure, instead of a pressure difference)
+def bin_divider(esoData,breathD, verbose=False):
+    # Amount of breaths
+    b_amount = len(breathD)
+    print(f"b_amount is: {b_amount}")
+    
+
+    #Divide Peso into bins according to each breath
+    esoData_bins = pd.DataFrame(index=range(b_amount))
+    print("created DF")
+    parts = int(len(esoData.columns)/12)
+
+    for part in range(1,parts+1):
+        if verbose:
+            print(f"bin_divider started part: {part}")
+        prefix = str(part)
+        peso = prefix + 'ModifiedPeso'
+        pao = prefix + 'ModifiedPao'
+        breath_col = prefix + 'breath'
+        inspStart = prefix + 'inspStart'
+        for breath in range(b_amount):
+            if verbose:
+                print(f"bin_divider made it to breath: {breath}")
+            #Retrieve index value for cur inspiratory and next inspiratory start
+            if breath == 0:
+                insp_cur = 0
+                insp_next = breathD.at[breath,inspStart]            
+                #Calculate the mean of peso and pao during the current breath
+                esoData_bins.at[breath,peso] = esoData.loc[insp_cur:insp_next,peso].max()#.mean()
+                esoData_bins.at[breath,pao] = esoData.loc[insp_cur:insp_next,pao].max()#.mean()
+                esoData_bins.at[breath,breath_col] = breath
+                
+
+            elif breath+1 < b_amount:                
+
+                insp_cur = breathD.at[breath, inspStart]
+                insp_next = breathD.at[breath+1, inspStart]            
+                #Calculate the mean of peso and pao during the current breath
+
+                esoData_bins.at[breath,peso] = esoData.loc[insp_cur:insp_next,peso].max()#.mean()
+                esoData_bins.at[breath,pao] = esoData.loc[insp_cur:insp_next,pao].max()#.mean()
+                if np.isnan(esoData_bins.at[breath,peso]) == False: 
+                    #Create a breath column for plotting purposes
+                    esoData_bins.at[breath,breath_col] = breath
+
+    return esoData_bins
+
+
+# %% Old Dashboard
+app = Dash(__name__)
+
+app.layout = html.Div([
+    html.H4('Improved Dashboard Demo'),
+    dcc.Dropdown(
+        id="1stDropDown",
+        options = ["breathD", "esoData", "FFFT"],
+        value=["Montreal"]
+    ),
+    dcc.Dropdown(
+    id='2ndDropDown',
+),
+    #dcc.Dropdown(
+       # id="3rdDropDown",
+        #options = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
+       # value=["Montreal"]
+        #),
+    
+    dcc.Graph(id="graph"
+              ),
+    dcc.Checklist(id="radioItems", options=["df_Length"]),
+    dcc.Textarea(
+        id="texttest",
+    )
+])
+
+
+@app.callback(
+    Output("2ndDropDown", "options"),
+    Input("1stDropDown", "value")
+    #[Input("3rdDropDown","value")]
+    )
+def update_2nd_DropDown(i1):
+    global df
+    df = halp.patientManager(11,i1)
+    output_List = df.columns.tolist()
+    return output_List
+
+#@app.callback(Output("2ndDropDown","value"),
+ #   Input("3rdDropDown", "value"))
+#def update_3rd_DropDown(value):
+  #  global patient
+  #  patient = value
+   # return patient
+   
+@app.callback(
+    Output("graph", "figure"),
+    Input("2ndDropDown", "value"))   
+def update_graph(column):
+    print(column)
+    fig = px.scatter(
+        df, x="1Time", y=column)
+    return fig
+
+@app.callback(
+    Output("texttest", "value"),
+    Input("radioItems","value"))
+def df_Length(value):
+    return "Length is: \n" + str(len(df)) #length
+
+
+
+
+app.run_server(debug=True)
+
+# %% Grid Search while breathD determined breath length
+def grid_search_full(esoData, esoData_bins,breathD,pat_Nr,verbose=False):
+    #Grid search used for this step
+    b_amt = len(esoData_bins)
+    parts = int(len(esoData.columns)/12)
+    #Retrieve vent settings
+    PS, PEEP = halp.Ventilator().get_Settings(str(pat_Nr))
+    #Define values for C
+    C_range = np.arange(50,400,0.5)
+    
+
+    #Housekeeping variables
+    hk_parts = {}
+    hk_C_loss = {}
+    
+    special_test = False
+
+
+    if verbose: halp.verbose_fnc(color.BOLD + f"****CURRENT PATIENT IS: {pat_Nr}****" + color.END)
+    #For every part
+    for part in range(1,parts+1):
+        #Reset stats at every part
+        j_best = 100000 #High value so that j is always set even at low output values
+        C_best = 0.0000 #Same logic but reversed
+        b_best = 0
+        best_C_loss = 10000000
+        global tot_C_loss
+        tot_C_loss = 0
+
+        
+        if verbose: halp.verbose_fnc(color.UNDERLINE + f"**CURRENT PART IS: {part}**" + color.END)
+            
+        #Set prefixes for retrieving correct parts
+        ModifiedPeso, ModifiedPao, Vt,Raw_insp,MeanInspFlow = halp.prefix_Factory(part,'ModifiedPeso','ModifiedPao','Vt','Raw_insp','MeanInspFlow')
+        
+        #Set a specific compliance
+        for C in C_range:
+            #reset tot loss at every compliance
+            #print(f"tot_C_loss pre-reset: {tot_C_loss}")
+            tot_C_loss = 0
+           # print(f"Total loss post reset is \n {tot_C_loss}")
+            
+
+        #Loop through every breath
+            for breath in range(1,b_amt):
+
+                    #Check if current breath exists or is NaN
+                if np.isnan(esoData_bins.at[breath,ModifiedPeso]) == False: 
+                    #print(f"current proccesed breath: {breath}")
+                    #Calculate loss for current breath
+                    j = compliance_cost_full(esoData_bins.at[breath,ModifiedPeso],
+                                        esoData_bins.at[breath,ModifiedPao],
+                                        breathD.at[breath,Vt],
+                                        PEEP[part-1],
+                                        breathD.at[breath,Raw_insp],
+                                        breathD.at[breath,MeanInspFlow],
+                                        C,
+                                        esoData_bins[ModifiedPeso].std())
+                    #if np.isnan(j): print(f"J is NaN at breath {breath}")
+
+                    
+                    if verbose:
+                        if breath % 90 == 0 and C == C_range[0]: print(f"breath {breath} j = {j}")
+
+                    #Increase total loss for the part by the loss for current breath
+                    if np.isnan(j) == False: tot_C_loss += j
+                    #print(f"tot_c_loss at C: {C} is {tot_C_loss}")
+                    #if breath % 10 == 0:
+                        #print(f"tot_C_loss: {tot_C_loss}")
+            
+            
+            #print(f"tot_C_loss: {tot_C_loss}")      
+            if tot_C_loss < best_C_loss:
+                best_C_loss = tot_C_loss
+                C_best = C
+            
+            hk_C_loss[C] = {"C" : C, "tot_C_loss" : tot_C_loss}
+
+            
+                    
+                
+        #if verbose: halp.verbose_fnc(color.RED + f"total loss for part {part} is: {tot_C_loss}" + color.END)
+            
+        #Housekeep for entire part
+        hk_parts[part] = {"C_best" : C_best, "best_C_loss" : best_C_loss,"hk_C_loss" : hk_C_loss}
+        #print(color.BOLD + f"Length of hk_parts at part {part} is {len(hk_parts)}" + color.END)
+        
+    return hk_parts
+
+# %% OLD Calculation of variables needed for Pplat - b4 switch to peak detection
+# %% Calculate expiratory time constant 
+
+#Set part and col_names
+part = 1
+prefix = str(part)
+Vt,Vtexp,inspStart,expStart,ModifiedFlow,peak_exp_flow,exp_t_const,mean_insp_flow,ModifiedPao,PIP,Pplat,Raw_exp,Raw_insp = halp.prefix_Factory(part,
+                                                                       'Vt',
+                                                                       'Vtexp',
+                                                                       'inspStart',
+                                                                       'expStart',
+                                                                       'ModifiedFlow',
+                                                                       'peak_exp_flow',
+                                                                       'exp_t_const',
+                                                                       'MeanInspFlow',
+                                                                       'ModifiedPao',
+                                                                       'PIP',
+                                                                       'Pplat',
+                                                                       'Raw_exp',
+                                                                       'Raw_insp'
+                                                                       )
+
+
+#Load vent settings
+PS, PEEP = halp.Ventilator().get_Settings(patient)
+PEEP = PEEP[part]
+
+
+#Breath amt is length once NaN have been dropped
+b_amt = len(breathD[Vtexp].dropna())-1
+
+for breath in range(1,b_amt):
+    #Get Vt_exp
+    exp_Vt = breathD.at[breath-1,Vtexp]*100
+    #print(f"exp_Vt at {breath} is {exp_Vt}")
+    #get start index and expiratory length
+    start_exp = breathD.at[breath,expStart]
+    len_exp = breathD.at[breath+1,inspStart] - breathD.at[breath,expStart]
+    #Calculate peak flow for the breath
+    breathD.at[breath,peak_exp_flow] = esoData.loc[start_exp:(start_exp+len_exp),ModifiedFlow].max()
+    print(f"Peak Exp Flow at {breath} is {breathD.at[breath,peak_exp_flow]}")
+    #Calculate exp_t_const
+    breathD.at[breath,exp_t_const] = exp_Vt/breathD.at[breath,peak_exp_flow]
+    #print(f"exp_t_const at {breath} is {breathD.at[breath,exp_t_const]}")
+    
+    
+    
+# %% Calculate peak flow and PIP
+for breath in range(1,b_amt):
+    start_insp = breathD.at[breath,inspStart]
+    len_insp = breathD.at[breath+1,expStart] - breathD.at[breath,inspStart]
+    
+    breathD.at[breath,mean_insp_flow] = esoData.loc[start_insp:(start_insp+len_insp),ModifiedFlow].mean()
+    breathD.at[breath,PIP] = esoData.loc[start_insp:(start_insp+len_insp),ModifiedPao].max()
+
+
+
+# %% Calculate Pplat from method described in article 1776
+
+#Formula
+def Pplat_method(Vt,PIP,PEEP,exp_t_const,mean_insp_flow):
+    Pplat = ((Vt*PIP)-(Vt*PEEP))/Vt+(exp_t_const*mean_insp_flow)
+    
+    return Pplat
+
+for breath in range(1,b_amt):
+    breathD.at[breath,Pplat] = Pplat_method(breathD.at[breath,Vt],
+                                         breathD.at[breath,PIP],
+                                         PEEP,
+                                         breathD.at[breath,exp_t_const],
+                                         breathD.at[breath,mean_insp_flow]
+                                         )
+    
+# %% Calculate Raw
+#Raw = (PIP-Pplat)/Flow
+
+for breath in range(1,b_amt):
+    breathD.at[breath,Raw_insp] = (breathD.at[breath,PIP]-breathD.at[breath,Pplat])/breathD.at[breath,mean_insp_flow]
+    breathD.at[breath,Raw_exp] = (breathD.at[breath,PIP]-breathD.at[breath,Pplat])/breathD.at[breath,peak_exp_flow]
+    
+# %% Old flow calculations
+         
+    
+if peak+1 < len(peaks_flow[0]):
+    while valleys_flow[0][peak+cnt_insp] > peaks_flow[0][peak+1]:
+        cnt_insp -= 1
+
+    y_inspVt = esoData.loc[valleys_flow[0][peak+cnt_insp]:peaks_flow[0][peak+1],ModifiedFlow]                
+    x_inspVt = np.arange(valleys_flow[0][peak+cnt_insp],peaks_flow[0][peak+1]+1)
+    esoData_bins.at[peak,insp_Vt] = integrate.simpson(y_inspVt,x_inspVt)#,even='last',axis=0
+
+#cnt_insp = 0
+
+
+    while valleys_flow[0][peak+1] < peaks_flow[0][peak+cnt_exp]:
+        cnt_exp -= 1
+    
+    
+##### NÅR ALDRIG DENNE DEL IGEN####
+#else:                    
+    y_expVt = esoData.loc[peaks_flow[0][peak+cnt_exp]:valleys_flow[0][peak+1],ModifiedFlow]
+    x_expVt = np.arange(peaks_flow[0][peak+cnt_exp],valleys_flow[0][peak+1]+1)
+    esoData_bins.at[peak,exp_Vt] = integrate.simpson(y_expVt,x_expVt)#,even='last',axis=0                    
+
+    #cnt_exp=0
+
+
+
