@@ -65,19 +65,7 @@ valleys_flow = find_peaks(esoData[ModifiedFlow]*(-1),
                           height=flow_settings[part]['height'],
                           distance=flow_settings[part]['dis'])
 
-#Remove all peaks above threshold
-#temp=[]
-#for peak in range(1,len(peakss_peso[1]['peak_heights'])):
-#    if peakss_peso[1]['peak_heights'][peak] >= 3:
- #       temp.append(peak)
 
-#peaks_peso= {}
-
-
-#temp = np.array(temp)
-#peaks_peso[1]={'peak_heights' : np.delete(peakss_peso[1]['peak_heights'],temp)}
-#peaks_peso[0]=np.delete(peakss_peso[0],temp)
-#len(peaks_peso[0])
         
 
 
