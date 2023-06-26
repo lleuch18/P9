@@ -17,7 +17,7 @@ from plotly.subplots import make_subplots
 
 #%% Load patient data, set column names
 patient = 11
-part = 1
+part = 
 PS, PEEP = halp.Ventilator().get_Settings(str(patient))
 breathD,esoData,FFFT = halp.patientManager(patient,'entire')
 
@@ -74,7 +74,7 @@ def calc_te(peaks_pao,peaks_flow,valleys_flow, data: pd.DataFrame) -> pd.DataFra
             #converted to mL
             exp_vt = comp_halp.flow_extracter(data, peak, ModifiedFlow, peaks_flow, valleys_flow,exp=True,intgrate=True)*1000
             
-            print(f"peak: {peak} \n exp_Flow: {exp_Flow} \n exp_vt: {exp_vt}")
+           # print(f"peak: {peak} \n exp_Flow: {exp_Flow} \n exp_vt: {exp_vt}")
         
             TE_frame.at[peak,exp_TE] = exp_vt/exp_Flow
 
@@ -110,7 +110,7 @@ def calc_pplat(peaks_pao,peaks_flow,valleys_flow, data: pd.DataFrame,part: int,T
             #Derive inspiratory flow
             insp_Flow = comp_halp.flow_extracter(data, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True)#*1000
             
-            print(f"peak: {peak} \n insp_vt: {insp_vt} \n insp_flow: {insp_Flow}")
+            #print(f"peak: {peak} \n insp_vt: {insp_vt} \n insp_flow: {insp_Flow}")
             #print(f"peak: {peak} \n PIP: {peaks_pao[1]['peak_heights'][peak-1]} \n PEEP: {PEEP[part]}")
             #print(f"peak: {peak} \n 1st part: {(insp_vt*peaks_pao[1]['peak_heights'][peak-1])} \n 2nd part: {(insp_vt*(PEEP[part]+1))} \n Denominator: {(insp_vt*TE*insp_Flow)}  ")
             pplat_frame.at[peak,pplat] = ((insp_vt*peaks_pao[1]['peak_heights'][peak-1])-(insp_vt*(PEEP[part]+1)))/(insp_vt*TE.at[peak,exp_TE]*insp_Flow)
@@ -156,25 +156,65 @@ def calc_peso_fun(Vt,PAO,Raw,insp_Flow,C,PEEP):
 esoData_bins = comp_halp.bin_divider(esoData, breathD, 11)
 
 eso11 = esoData_bins[ModifiedPeso]
-eso11.at[78] = eso11.loc[70:77].median()
-eso11.at[79] = eso11.loc[70:77].mean()
+#eso11.at[78] = eso11.loc[70:77].median()
+#eso11.at[79] = eso11.loc[70:77].mean()
 eso11.dropna(inplace=True)
 
 
-peso_calc = pd.DataFrame(index=np.arange(len(peaks_pao[0])), columns=[ModifiedPeso])
+
+vt = 0.4#1#0.7
+cpao = 0.7
+C = 61.7#140#63.5
+PEEP = 23#20#15
+craw=0.01#0.6#0.7
+flow = 0.5#0.5#1.5#1
+
+peso_calc = pd.DataFrame(index=np.arange(len(peaks_pao[0])), columns=[ModifiedPeso,"fff"])
 for peak in range(len(eso11)):
-    insp_vt = comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True,intgrate=True)*1000
-    insp_Flow = comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True)#*1000
-    PAO = peaks_pao[1]['peak_heights'][peak-1]
-    Raw = insp_res_frame.at[peak,insp_res]
+    if comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,exp=True) is not None or comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,exp=True,intgrate=True) is not None:    
+        #print(f"peak: {peak} \n type: {type(comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True,intgrate=True)*1000)}")
+        #print(f" peak: {peak} \n insp_vt: {comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True,intgrate=True)*1000} ")
+        insp_vt = comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True,intgrate=True)*1000
+        insp_Flow = comp_halp.flow_extracter(esoData, peak, ModifiedFlow, peaks_flow, valleys_flow,insp=True)*1000
+        PAO = peaks_pao[1]['peak_heights'][peak-1]*cpao
+        Raw = insp_res_frame.at[peak,insp_res]
+        
+        #print(f"pao: {PAO}")
+        
+        peso_calc.at[peak,ModifiedPeso] = calc_peso_fun(insp_vt*vt, PAO, Raw*craw, insp_Flow*flow, C, PEEP)
+#peso_calc.at[2,ModifiedPeso] = peso_calc[ModifiedPeso].mean()
+#peso_calc.dropna(inplace=True)
+print(f"std: {peso_calc.std()}")
+peso_calc.at[0,ModifiedPeso] = peso_calc[ModifiedPeso].mean()
+
+import math
+for i in range(len(peso_calc)):
+    if math.isnan(peso_calc.at[i,ModifiedPeso]):
+        peso_calc.at[i,ModifiedPeso] = peso_calc[ModifiedPeso].mean()
+   
+
+while len(eso11) < len(peso_calc):
+    print(f"eso11: {len(eso11)} \n peso_calc: {len(peso_calc)}")
+    print(len(eso11))
+    eso11.at[len(eso11)] = eso11.mean()
     
-    peso_calc.at[peak,ModifiedPeso] = calc_peso_fun(insp_vt, PAO, Raw, insp_Flow, 14, PEEP[part]+1)
-peso_calc.at[2,ModifiedPeso] = peso_calc[ModifiedPeso].mean()
-peso_calc.dropna(inplace=True)
+    #print(cnt)
 
-#fig = px.scatter(x=esoData.index,y=esoData[ModifiedPeso])
-#plot(fig)
+#eso11.at[71] = eso11.mean()
+#eso11.at[72] = eso11.mean()
+#eso11.at[73] = eso11.mean()
+#peso_calc[test] = eso11
+std = peso_calc.std()
+#peso_calc=peso_calc
 
+
+
+import statsmodels.api as sm
+test = sm.graphics.mean_diff_plot(eso11,peso_calc[ModifiedPeso])
+plot(test)
+
+if len(eso11) == len(peso_calc):
+    print("yes")
 
 
 # %% Peso vs Calc Peso
@@ -213,7 +253,4 @@ fig.update_layout(
 
 plot(fig)   
 
-import statsmodels.api as sm
-part=1
-test = sm.graphics.mean_diff_plot(eso11,peso_calc[ModifiedPeso])
-plot(test)
+

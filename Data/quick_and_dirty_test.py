@@ -51,7 +51,7 @@ breath_indexes = {1 : {1 : {'start' : 10.40*100,'stop' : 18.1*100},
                   }
 
 #Manual detection
-part = 1
+part = 8
 Time,ModifiedPeso,ModifiedPao,ModifiedFlow,insp_flow,exp_flow,peso_peak,pao_peak,flow_peak,flow_valley,Vt = halp.prefix_Factory(part, 
                                                                                                                     'Time',
                                                                                                                     'ModifiedPeso',
@@ -346,13 +346,13 @@ test = sm.graphics.mean_diff_plot(var_df[str(part)+'ModifiedPao'],calc_pao[str(p
 plot(test)
 
 # %% Plotting detected timeframes for manual inspection
-trace1 = go.Scatter(x=temp_df.index, 
-                   y = temp_df[ModifiedPao],
+trace1 = go.Scatter(x=esoData.index, 
+                   y = esoData[ModifiedPao],
                    mode='markers+text',
-                   text=temp_df[pao_peak]
+                   #text=temp_df[pao_peak]
                    )
-trace2 = go.Scatter(x=temp_df.index, 
-                   y = temp_df[ModifiedPeso],
+trace2 = go.Scatter(x=esoData.index, 
+                   y = esoData[ModifiedPeso],
                    mode='markers+text'
                    )
 
@@ -368,9 +368,9 @@ trace4 = go.Scatter(x=temp_df.index,
                    text = temp_df[flow_valley]
                    )
 
-fig = make_subplots(rows=2,cols=2,subplot_titles=(ModifiedPao,ModifiedPeso,ModifiedFlow,insp_flow))
+fig = make_subplots(rows=2,cols=1,subplot_titles=(ModifiedPao,ModifiedPeso,ModifiedFlow,insp_flow))
 fig.add_trace(trace1,row=1,col=1)
-fig.add_trace(trace2,row=1,col=2)
+fig.add_trace(trace2,row=2,col=1)
 fig.add_trace(trace3,row=2,col=1)
 fig.add_trace(trace4, row=2,col=2)
 fig['layout'].update(height = 600, width = 800, title = "Extracting insp- and expiratory flow",xaxis=dict(
