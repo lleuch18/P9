@@ -1,0 +1,94 @@
+<mxfile host="app.diagrams.net" modified="2023-05-29T15:01:40.186Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36" etag="kie-n0UoME7cXjWr21Kt" version="21.3.5" type="github">
+  <diagram name="Page-1" id="712WwV8AIhScHJDsAomB">
+    <mxGraphModel dx="1134" dy="566" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-1" target="c4fnFmqPdkvsBtRL4Ree-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="310" y="230" />
+              <mxPoint x="90" y="230" />
+              <mxPoint x="90" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-1" value="Choice of cost function" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="250" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-2" target="c4fnFmqPdkvsBtRL4Ree-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-2" value="Derive from prior physiological knowledge" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-3" target="c4fnFmqPdkvsBtRL4Ree-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-3" value="Adapt to problem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="250" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-4" target="c4fnFmqPdkvsBtRL4Ree-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="330" />
+              <mxPoint x="230" y="330" />
+              <mxPoint x="230" y="370" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-4" value="Choose features such as weighting" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="400" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-5" target="c4fnFmqPdkvsBtRL4Ree-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="390" y="370" />
+              <mxPoint x="390" y="420" />
+              <mxPoint x="230" y="420" />
+              <mxPoint x="230" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-5" value="Cost function visualization" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="250" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-6" target="c4fnFmqPdkvsBtRL4Ree-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="390" y="470" />
+              <mxPoint x="390" y="520" />
+              <mxPoint x="230" y="520" />
+              <mxPoint x="230" y="570" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-6" value="Grid search with convergence criteria" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="250" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-7" target="c4fnFmqPdkvsBtRL4Ree-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="390" y="570" />
+              <mxPoint x="390" y="610" />
+              <mxPoint x="150" y="610" />
+              <mxPoint x="150" y="660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-7" value="Constrained Optimization" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="250" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c4fnFmqPdkvsBtRL4Ree-8" target="c4fnFmqPdkvsBtRL4Ree-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-8" value="Derive constraints from physiological knowledge" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="170" y="630" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c4fnFmqPdkvsBtRL4Ree-9" value="Optimization method" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="330" y="630" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
